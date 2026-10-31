@@ -488,6 +488,7 @@ fn strip_additional_properties(value: Value) -> Value {
     match value {
         Value::Object(mut map) => {
             map.remove("additionalProperties");
+            map.remove("x-mcp-header");
             map.values_mut()
                 .for_each(|v| *v = strip_additional_properties(std::mem::take(v)));
             Value::Object(map)
@@ -1123,7 +1124,11 @@ mod tests {
                 "list": {
                     "type": "array",
                     "items": {"type": "string", "additionalProperties": false}
-                }
+                },
+                "string": {
+                    "type": "string",
+                    "x-mcp-header": "String"
+                },
             }
         });
         let cleaned = strip_additional_properties(schema);
@@ -1141,6 +1146,11 @@ mod tests {
         assert!(
             cleaned["properties"]["list"]["items"]
                 .get("additionalProperties")
+                .is_none()
+        );
+        assert!(
+            cleaned["properties"]["string"]
+                .get("x-mcp-header")
                 .is_none()
         );
     }
